@@ -1,10 +1,12 @@
 import { StyleSheet, Text, View, Pressable, FlatList } from "react-native";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { Entypo } from "@expo/vector-icons";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Moviecards } from "../Context";
+
+//this is to check
 
 const TheaterScreen = () => {
   const route = useRoute();
