@@ -1,17 +1,16 @@
-import { StyleSheet, Text, View, Pressable, FlatList } from "react-native";
+import { StyleSheet, Text,Alert, View, Pressable, FlatList } from "react-native";
 import React, { useContext, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { Entypo } from "@expo/vector-icons";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { Moviecards } from "../Context";
-
-//this is to check
+import { Moviescards } from "../Context";
+import { useStripe } from "@stripe/stripe-react-native";
 
 const TheaterScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { seats, setSeats } = useContext(Moviecards);
+  const { seats, setSeats,occupaid } = useContext(Moviescards);
   const onSeatSelect = (item) => {
     const seatSelected = seats.find((seat) => seat === item);
     if (seatSelected) {
@@ -22,15 +21,64 @@ const TheaterScreen = () => {
   };
 
   console.log(seats, "seats selected");
-  const showSeats= () => {
-    return(
-      <View style={{flexDirection:"row",alignItems:"center",}}>{
-        seats.map((seat,index)=>(
-        <Text style={{marginTop:4,fontSize:15,paddingHorizontal:4}} > {seat}</Text>
-      ))}
+  displaySeats = [...seats];
+  const fee = 87;
+  const noOfSeats = seats.length;
+  const priceValue=noOfSeats * 240 ;
+  const total = seats.length > 0 ? fee + noOfSeats * 240 : 0;
+  console.log(total, "total");
+  const showSeats = () => {
+    return (
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        {seats.map((seat, index) => (
+          <Text style={{ marginTop: 4, fontSize: 15, paddingHorizontal: 4 }}>
+            {seat}
+          </Text>
+        ))}
       </View>
-      )
-  }
+    );
+  };
+  const stripe = useStripe();
+  const subscribe = async () => {
+    const response = await fetch("http://192.168.0.196:8080/payment", {
+      method: "POST",
+      body: JSON.stringify({
+        amount: Math.floor(total * 100),
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.json();
+    console.log(data);
+    if (!response.ok) return Alert.alert(data.message);
+    const clientSecret = data.clientSecret;
+    const initSheet = await stripe.initPaymentSheet({
+      paymentIntentClientSecret: clientSecret,
+      merchantDisplayName: 'Merchant Name ',
+    });
+    if (initSheet.error) return Alert.alert(initSheet.error.message);
+    const presentSheet = await stripe.presentPaymentSheet({
+      clientSecret,
+    });
+    if (presentSheet.error) return Alert.alert(presentSheet.error.message);
+    else {
+      occupaid.push(...seats);
+      navigation.navigate("Ticket",{
+        name:route.params.name,
+        mall:route.params.mall,
+        timeSelected:route.params.timeSelected,
+        total:total,
+        image:route.params.image,
+        date:route.params.date,
+        selectedSeats:displaySeats,
+        priceValue:priceValue,
+
+      })
+      setSeats([]);
+    }
+  };
+
   return (
     <View style={{ marginTop: 35 }}>
       <View
@@ -105,13 +153,19 @@ const TheaterScreen = () => {
               borderRadius: 6,
             }}
           >
-            {seats.includes(item) ? (
-              <Text style={{ backgroundColor: "coral", padding: 8 }}>
-                {item}
-              </Text>
-            ) : (
-              <Text style={{ padding: 8 }}>{item}</Text>
-            )}
+             {
+              seats.includes(item) ? (
+                <Text style={{ backgroundColor: "coral", padding: 8 }}>{item}</Text>
+              )
+              :
+              occupaid.includes(item) ? (
+                <Text style={{ backgroundColor: "#989898", padding: 8 }}>{item}</Text>
+              )
+              :
+              (
+                <Text style={{ padding: 8 }}>{item}</Text>
+              )
+            }
           </Pressable>
         )}
       />
@@ -201,8 +255,8 @@ const TheaterScreen = () => {
           <Text></Text>
         )}
 
-        <Pressable>
-          <Text style={{ fontSize: 17, fontWeight: "600" }}>Pay $0</Text>
+        <Pressable onPress={subscribe}>
+          <Text style={{ fontSize: 17, fontWeight: "600" }}>Pay ${total}</Text>
         </Pressable>
       </Pressable>
     </View>

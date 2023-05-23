@@ -6,20 +6,23 @@ import {
   Pressable,
   Image,
 } from "react-native";
-import React from "react";
+import React, { useContext } from "react";
 import movies from "../data/movies";
 import Header from "./Header";
 import { useNavigation } from "@react-navigation/native";
+import { Moviescards } from "../Context";
+import TicketsComponents from "./TicketsComponents";
 
 const Moviecards = () => {
   const data = movies;
   const navigation = useNavigation();
+  const { ticket } = useContext(Moviescards);
   return (
-    <View style={{marginTop:20}}>
+    <View style={{ marginTop: 20 }}>
       <FlatList
         showsVerticalScrollIndicator={false}
         numColumns={2}
-        ListHeaderComponent={Header}
+        ListHeaderComponent={ticket.length > 0 ? TicketsComponents : Header}
         data={data}
         renderItem={({ item }) => (
           <Pressable style={{ margin: 6, marginHorizontal: 15 }}>
@@ -48,7 +51,12 @@ const Moviecards = () => {
               {item.genre}
             </Text>
             <Pressable
-              onPress={() => navigation.navigate("Movie", { name: item.name })}
+              onPress={() =>
+                navigation.navigate("Movie", {
+                  name: item.name,
+                  image: item.image,
+                })
+              }
               style={{
                 backgroundColor: "coral",
                 padding: 10,

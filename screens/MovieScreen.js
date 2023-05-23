@@ -124,6 +124,8 @@ const MovieScreen = () => {
                   name:route.params.name,
                   timeSelected:item,
                   tableSeats:seatsData,
+                  date:selectedDate,
+                  image:route.params.image,
                 })}
                   style={{
                     backgroundColor: "white",

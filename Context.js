@@ -1,13 +1,15 @@
 import { createContext, useState } from "react";
 
-const Moviecards = createContext ();
+const Moviescards = createContext ();
 
 const MovieContext =({children}) =>{
     const [seats,setSeats] = useState([]);
+    const[occupaid,setOccupaid]= useState([]);
+    const [ticket,setTicket] = useState([]);
     return(
-        <Moviecards.Provider value={{seats,setSeats}}>
+        <Moviescards.Provider value={{seats,setSeats,occupaid,setOccupaid,ticket,setTicket}}>
             {children}
-        </Moviecards.Provider>
+        </Moviescards.Provider>
     )
 }
-export {Moviecards,MovieContext};
+export {Moviescards,MovieContext};
